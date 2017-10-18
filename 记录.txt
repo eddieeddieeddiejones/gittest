@@ -1,0 +1,159 @@
+https://mp.weixin.qq.com/s/6kuJuJCng8AWVAlSYl1RrA
+
+
+git status
+git add .
+// 文件从工作区移出
+git rm --cached a.html
+
+同步远端分支变化
+// 拉取指定分支的变化
+git fetch origin master 
+// 拉取所有分支的变化
+git fetch 
+// 拉取所有分支的变化，并且将远端不存在的分支同步移除【推荐】
+git fetch -p
+
+同步远端代码变化。
+// 都是先 git fetch，然后执行合并操作
+// 不同的是，git pull 执行的是 git merge，git pull -r 执行的是git rebase
+git pull origin master 
+git pull -r origin master
+
+
+新增 commit
+// 添加文件到缓存区，然后提交到本地仓库
+git add files
+git commit -m '提交备注'
+
+
+ 撤销 commit
+// 会将提交记录回滚，代码不回滚
+git reset b14bb52
+// 会将提交记录和代码全部回滚
+git reset --hard b14bb52
+// 将部分代码文件回滚？？？？？
+git checkout -- files
+
+
+合并 commit 合并 commit，本质上合并两份不同状态下的代码。？？？？？
+// Git 提供了两种合并 commit 的方式
+git merge master
+git rebase master
+
+那么 git rebase 和 git merge 到底有什么区别呢？ merge是两个分支处理冲突后，新增一个 commit 追加到master上。 rebase是将someFeature分支上的commit记录追加到主分支上，值得注意的是，这个时候他的commit其实已经发生变化。相对来说，git merge 处理冲突更直接，而git rebase 能够保证清晰的 commit 记录。
+
+git branch
+// git branch qixiu/feature + git checkout qixiu/feature
+// 从当前分支新增一个新的分支qixiu/feature
+// 一般情况下，我们应该从master或者其他稳定分支来新增分支
+git checkout -b qixiu/feature // 新建分支
+git checkout qixiu/feature // 切换分支
+
+删除本地分支 其实就是移除一个指向 commitID 的指针。
+// 删除本地分支，如果本地还有未合并的代码，则不能删除
+git branch -d qixiu/feature
+// 强制删除本地分支
+git branch -D qixiu/feature
+
+新增远端分支 通常情况下，我们是新建本地分支，然后更新到远端的方式来新增一个远端分支
+git push origin qixiu/feature
+
+
+删除远端分支 同样，我们也是通过更新到远端的方式来删除一个远端分支
+// 等同于git push origin -d qixiu/feaure
+git push origin :qixiu/feature
+
+
+git status // 查看本地代码状态
+git add files // 添加代码到缓存区
+git commit -m '提交内容的备注' // 提交代码到本地仓库
+git checkout -b branchName // 不加-b就是普通切换分支
+git fetch -p // 同步远端分支状态
+git pull -r origin branchName // fetch远端代码到本地，并且以rebase的方式合并代码
+git push origin branchName // 更新本地代码到远端
+
+
+
+基于功能分支的协作模式
+基于功能分支的开发流程其实就是一句话：用分支来承载功能开发，开发结束之后就合并到 master 分支。 他的优点是能够保证master分支的整洁，同时还能让分支代码逻辑集中，也便于 CodeReview。
+
+分支命名规范
+推荐使用如下格式：ownerName/featureName。 这样既便于知道分支覆盖的功能，也便于找到分支的负责人。以后清理分支的时候也很方便。
+
+
+### 开发流程
+
+✦ 从 master 切出一个新分支
+
+git checkout -b qixiu/newFeature
+✦ 开发一些新功能，然后提交 建议较多频次的提交代码到本地仓库，以便能够更灵活的保存或撤销修改。 此外为了保证提交日志的清晰，建议备注清楚的注释。
+
+git status
+git add files // 挑选需要提交的文件，或者全部提交
+git commit -m '提交备注'
+git push origin qixiu/newFeature
+✦ 如果功能开发完成，可以发起一个CodeReview流程 ✦ 如果代码测试通过，合并到 master，然后准备上线
+
+// 冗余版 合并到 master
+git checkout master 
+git pull -r origin master
+git checkout qixiu/newFeature
+git rebase master // 处理冲突
+git checkout master
+git merge qixiu/newFeature
+git push origin master
+// 精简版 合并到 master
+git checkout qixiu/newFeature
+git pull -r origin master // 将master的代码更新下来，并且rebase处理冲突
+git push origin master // 将本地代码更新到远端
+
+有几点需要注意： 不要在master合并代码，保证master的可用性很重要。 确保在正确的分支执行正确的操作。 无论是处理冲突还是更新远端代码，请保有敬畏之心。
+
+### GitFlow 开发流程
+✦ Master分支：用于存放线上版本代码，可以方便的给代码打版本号。 ✦ Develop分支：用于整合 Feature 分支。 ✦ Feature分支：某个功能的分支，从 Develop 分支切出，并且功能完成时又合并回 Develop 分支，不直接和 Master 分支交互。 ✦ Release分支：通常对应一个迭代。将一个版本的功能全部合并到 Develop 分支之后，从 Develop 切出一个 Release 分支。这个分支不在追加新需求，可以完成 bug 修复、完善文档等工作。务必记住，代码发布后，需要将其合并到 Master 分支，同时也要合并到 Develop 分支。 ✦ Hotfix分支：紧急修复的分支，是唯一可以从 Master 切出的分支，一旦修复了可以合并到 Master 分支和 Develop 分支。
+
+从每个分支的功能和约定可以看出，它流程多约束多，对于小规模应用并不适合。 当然 GitFlow 有一些辅助工具 gitflow 可以自动化的完成这些任务，对于大型项目也很有帮助。
+
+
+### 其他
+- git reflog，查看操作记录
+仔细看上图，reflog 记录了你所有的 git 命令操作，对于复原某些莫名其妙的场景或者回滚误操作有极大的帮助。 试想一个场景：你使用 git reset --hard commitID 把本地开发代码回滚到了一个之前的版本，而且还没有推到远端，怎么才能找回丢失的代码呢？ 你如果使用 git log 查看提交日志，并不能找回丢弃的那些 commitID。 而 git reflog 却详细的记录了你每个操作的 commitID，可以轻易的让你复原当时的操作并且找回丢失的代码。 当然，如果你丢失的代码都没有提交记录，那么恭喜你，你的代码真的丢了
+
+- 压缩提交记录
+那么，如何压缩commit记录呢？ 
+ ✦ 使用 git log 找到起始 commitID
+ ✦ git reset commitID，切记不要用 --hard参数 
+ ✦ 重新 git add && git commit 
+ ✦ git push -f origin branchName，因为会有冲突，所以需要强制覆盖远端分支，请务必谨慎。
+ ✦ 合并到 master 中，然后更新远端 master。
+
+还有1种方式：git rebase -i：通过交互式的 rebase
+从实际应用来说，三种日志压缩都很优秀， git reset更简单， git rebase -i更细腻。
+
+
+前文简单介绍了 git rebase和 git merge 的区别，坦率讲，他们各有优劣。 git rebase能让你的 commit 记录非常整洁，无论是线上回滚还是 CodeReview 都更轻松；但却是一个有隐患的操作，使用时务必谨慎。 git merge 操作更安全，同时也更简单；但却会增加一些冗余的 commit 记录。
+✦ rebase 先找出共同的祖先节点 
+✦ 从祖先节点把 pay 分支的提交记录摘下来，然后 rebase 到 master 分支 
+✦ rebase 之后的 commitID 其实已经发生了变化 尤其是第三点，经常会让人误操作，所以务必注意。
+
+当你不断 rebase master 的时候，其实你本地的 d 都变成了 d' ，再要和远端 pay 分支保持一致，你的本地分支 commit 记录已经不堪入目了。？？？？？？？？
+绝不要在公共的分支上使用 rebase！！！
+
+git hook，Git 的生命周期
+这个大多数人应该都，听说过，git操作有它自身的生命周期，在不同的生命周期，我们可以做一些自动化的事情。
+举两个简单的例子： ✦ pre-commit的时候我们可以做 eslint ✦ post-commit的时候，我们可以做利用 jenkins 类似的工具做持续集成
+当然还有更多的声明周期，具体可以参考 Git 钩子
+
+
+git alias，简化 Git 命令
+我们可以通过配置 git alias 来简化需要输入的 Git 命令。 比如前文的 git subtree 需要输入很长的 Git 命令，我们可以配置 .git/config 文件来解决。
+// git stpull appfe demo/xxx
+// git stpush appfe demo/xxx
+[alias]
+    stpull = !git subtree pull --prefix=$1 appfe $2 \
+        && :
+    stpush = !git subtree pull --prefix=$1 appfe $2 \
+        && git subtree split --rejoin --prefix=$1 $2 \
+        && git subtree push --prefix=$1 appfe $2 \
+        && :
