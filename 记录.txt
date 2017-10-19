@@ -157,3 +157,18 @@ git alias，简化 Git 命令
         && git subtree split --rejoin --prefix=$1 $2 \
         && git subtree push --prefix=$1 appfe $2 \
         && :
+
+
+## 我自己收集的git 操作
+…or create a new repository on the command line
+
+echo "# gittest" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/eddieeddieeddiejones/gittest.git
+git push -u origin master
+…or push an existing repository from the command line
+
+git remote add origin https://github.com/eddieeddieeddiejones/gittest.git
+git push -u origin master
